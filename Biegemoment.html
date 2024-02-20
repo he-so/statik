@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maximales Biegemoment und µEds berechnen</title>
+<style>
+	math {font-size:32px;}
+</style>
+</head>
+<body>
+    <h2>Maximales Biegemoment und µEds berechnen</h2>
+
+<p>Hinweise:</p>
+<p>Berechnung des maximalen Biegemoments bei gleichmäßiger Last auf dem Balken.
+<p>Berechnung der einheitenlosen Zahl µEds ohne Berücksichtigung einer Normalkraft in Richtung der Bewehrung.
+<p>Für Betonstahlbalken mit rechteckigem Querschnitt mit Zugbewehrung ohne Druckbewehrung.
+
+    <form id="berechnungsForm">
+        <label for="spannweite">Spannweite des Balkens (in Metern):</label>
+        <input type="number" id="spannweite" name="spannweite" step="0.01" value="0.95" required><br><br>
+        
+        <label for="lastProMeter">Last pro Meter (in Tonnen):</label>
+        <input type="number" id="lastProMeter" name="lastProMeter" step="0.01" value="3" required><br><br>
+
+        <input type="button" id="buttonBiegemoment" name="biegemoment" value="Berechnen">
+
+<div style="display: flex;">
+    <div id="formel1">
+	<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline">
+    	<msub><mi>M</mi><mrow><mi>E</mi><mi>d</mi><mi>s</mi></mrow> <mo>=</mo> 
+	<mrow>
+		<mfrac>
+		  <mrow>
+		  <mi>q</mi><msup><mi>L</mi><mn>2</mn></msup>
+		  </mrow>
+		  <mrow>
+		  <mn>8</mn>
+		  </mrow>
+		</mfrac>
+	</mrow>
+	<mo>=</mo>
+	</math>
+	</div>
+	<div id="formelEingesetzt1"></div>
+	<div id="ergebnis1"></div>
+</div>
+
+<br>
+        <label for="maxBiegemoment">maxBiegemoment (in kNm):</label>
+        <input type="number" id="maxBiegemoment" name="maxBiegemoment" value="3.57" required><br><br>
+        
+        <label for="betonfestigkeit">Betonfestigkeit (in N/mm²):</label>
+        <input type="number" id="betonfestigkeit" name="betonfestigkeit" step="0.01" value="20" required><br><br>
+        
+        <label for="breite">Breite des Balkens (in Metern):</label>
+        <input type="number" id="breite" name="breite" step="0.01" value="0.32" required><br><br>
+        
+        <label for="statischeHoehe">Statische Höhe des Balkens (in Metern):</label>
+        <input type="number" id="statischeHoehe" name="statischeHoehe" step="0.01" value="0.05" required><br><br>
+        
+        <input type="button" id="buttonMuEds" value="Berechnen">
+    </form>
+<br>
+<div style="display: flex;">
+	<br>
+	<div id="formel2">
+	<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline">
+	<msub><mi>µ</mi><mrow><mi>E</mi><mi>ds</mi></mrow></msub> <mo>=</mo>
+	<mrow>
+	<mfrac>
+	  <mrow>
+		<msub><mi>M</mi><mrow><mi>E</mi><mi>d</mi><mi>s</mi></mrow>
+	  </mrow>
+	  <mrow>
+		<mi>b</mi> <msup><mi>d</mi><mn>2</mn></msup> <msub><mi>f</mi><mrow><mi>c</mi><mi>d</mi></mrow></msub>
+	  </mrow>
+	</mfrac>
+	</mrow>
+	<mo>=</mo>
+	</math>
+	</div>
+	<div id="formelEingesetzt2"></div>
+</div>
+
+    <script>
+        document.getElementById("buttonBiegemoment").addEventListener("click", function(event) {
+            var spannweite = parseFloat(document.getElementById("spannweite").value);
+            var lastProMeter = parseFloat(document.getElementById("lastProMeter").value);
+            var maxBiegemoment = berechneMaximalesBiegemoment(spannweite, lastProMeter) / 1000; // Umrechnung in kNm
+            
+			var maxBiegemomentAusgabe = `<math xmlns="http://www.w3.org/1998/Math/MathML"><mfrac><mrow><mi>${lastProMeter}</mi><mo>⋅</mo><msup><mi>${spannweite}</mi><mn>2</mn></msup></mrow><mrow><mn>8</mn></mrow></mfrac><mo>=</mo><mn>${maxBiegemoment}</mn>`;
+
+			document.getElementById("formelEingesetzt1").innerHTML = maxBiegemomentAusgabe;
+			document.getElementById("maxBiegemoment").value = maxBiegemoment;
+
+        });
+
+        document.getElementById("buttonMuEds").addEventListener("click", function(event) {
+            var betonfestigkeit = parseFloat(document.getElementById("betonfestigkeit").value);
+            // Umrechnung der Betonfestigkeit von N/mm² in kN/m²
+            var betonfestigkeitInkNm2 = betonfestigkeit * 1000;
+            var breite = parseFloat(document.getElementById("breite").value);
+            var statischeHoehe = parseFloat(document.getElementById("statischeHoehe").value);
+            var maxBiegemoment = parseFloat(document.getElementById("maxBiegemoment").value);
+            var myEds = berechneMyEds(maxBiegemoment, betonfestigkeitInkNm2, breite, statischeHoehe);
+            
+            var myEdsAusgabe = `<math xmlns="http://www.w3.org/1998/Math/MathML">
+			<mfrac><mrow><mn>${maxBiegemoment}</mn></mrow><mrow><mn>${breite}</mn><mo>⋅</mo><msup><mn>${statischeHoehe}</mn><mn>2</mn></msup><mo>⋅</mo><mn>${betonfestigkeitInkNm2}</mn></mrow></mfrac><mo>=</mo><mn>${myEds}</mn</math>`;
+			
+			document.getElementById("formelEingesetzt2").innerHTML = myEdsAusgabe;
+		});
+
+        function berechneMaximalesBiegemoment(spannweite, lastProMeter) {
+            // Umrechnung der Last von Tonnen in Newton (1 Tonne ≈ 9810 Newton)
+            var lastInNewton = lastProMeter * 9810;
+            
+            // Berechnung des maximalen Biegemoments (in Newton-Meter)
+            var maxBiegemoment = (lastInNewton * Math.pow(spannweite, 2)) / 8;
+            
+            return maxBiegemoment.toFixed(2); // Auf 2 Dezimalstellen runden
+        }
+
+        function berechneMyEds(maxBiegemoment, betonfestigkeit, breite, statischeHoehe) {
+            // Berechnung von My Eds (dimensionslos)
+            var myEds = maxBiegemoment / (betonfestigkeit * breite * Math.pow(statischeHoehe, 2));
+            
+            return myEds.toFixed(2); // Auf 2 Dezimalstellen runden
+        }
+    </script>
+</body>
+</html>
